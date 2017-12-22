@@ -1,1 +1,1 @@
-# Cobalt Strike Malleable C2 Profiles 
+# Malleable C2 Profiles 
