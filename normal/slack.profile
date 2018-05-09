@@ -191,13 +191,14 @@ http-stager {
 
 }
 
-###new 3.11 stage options###
+###Malleable PE Options###
 
-#If you havent watched the videos/tested then probably comment out the 'set_module_xx' part.
+#Using some of the new 3.11 options.
 #https://blog.cobaltstrike.com/2018/04/09/cobalt-strike-3-11-the-snake-that-eats-its-tail/
 #https://blog.cobaltstrike.com/2018/04/23/fighting-the-toolset/
 
-
+set spawnto_x86 "%windir%\\syswow64\\spoolsv.exe";
+set spawnto_x64 "%windir%\\sysnative\\spoolsv.exe";
 
 #used peclone on wwanmm.dll. 
 #don't use 'set image_size_xx' if using 'set module_xx'
@@ -207,7 +208,7 @@ stage {
 	set entry_point    "170000";
 #	set image_size_x86 "6586368";
 #	set image_size_x64 "6586368";
-	set name	   "WWanMM.dll";
+#	set name	   "WWanMM.dll";
 	set userwx 	   "false";
 	set cleanup	   "true";
 	set stomppe	   "true";
