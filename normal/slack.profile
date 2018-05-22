@@ -197,8 +197,8 @@ http-stager {
 #https://blog.cobaltstrike.com/2018/04/09/cobalt-strike-3-11-the-snake-that-eats-its-tail/
 #https://blog.cobaltstrike.com/2018/04/23/fighting-the-toolset/
 
-set spawnto_x86 "%windir%\\syswow64\\spoolsv.exe";
-set spawnto_x64 "%windir%\\sysnative\\spoolsv.exe";
+set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
+set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
 
 #used peclone on wwanmm.dll. 
 #don't use 'set image_size_xx' if using 'set module_xx'
