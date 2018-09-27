@@ -1,6 +1,6 @@
 #xbash malware profile
 #https://researchcenter.paloaltonetworks.com/2018/09/unit42-xbash-combines-botnet-ransomware-coinmining-worm-targets-linux-windows/
-#https://www.hybrid-analysis.com/sample/9ee6d5b27ed8a4d67181a82b2df1a1f45409652eec096455a9beb7a3b7031b34?environmentId=100
+#https://www.hybrid-analysis.com/sample/725efd0f5310763bc5375e7b72dbb2e883ad90ec32d6177c578a1c04c1b62054?environmentId=100
 #sample = 725efd0f5310763bc5375e7b72dbb2e883ad90ec32d6177c578a1c04c1b62054  reg9.sct
 #xx0hcd
 
