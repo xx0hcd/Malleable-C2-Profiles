@@ -172,7 +172,7 @@ http-stager {
 set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
 set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
 
-#attept to disable amsi for execute-assembly, powerpick, and psinject from 3.13
+#attempt to disable amsi for execute-assembly, powerpick, and psinject from 3.13
 set amsi_disable "true";
 
 #used peclone on wwanmm.dll. 
@@ -206,6 +206,6 @@ stage {
 	transform-x64 {
 	    prepend "\x90\x90\x90";
 	    strrep "ReflectiveLoader" "";
-	    strrep "beacon.64.dll" "";
+	    strrep "beacon.x64.dll" "";
 	}
 }
