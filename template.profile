@@ -4,13 +4,35 @@
 #xx0hcd
 
 ###global options###
-set sleeptime "37500";
-set jitter    "33";
-set useragent "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/587.38 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
 
 #shows profile name in reports.
 set sample_name "whatever.profile";
 
+set sleeptime "37500";
+set jitter    "33";
+set useragent "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/587.38 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
+
+#set true to use staged payloads, false to disable staged payloads.
+#set host_stage "false";
+
+###DNS options###
+set dns_idle "8.8.8.8";
+set maxdns    "245";
+set dns_sleep "0";
+set dns_stager_prepend "";
+set dns_stager_subhost "";
+set dns_max_txt "252";
+set dns_ttl "1";
+
+###SMB options###
+#use different strings for pipename and pipename_stager.
+set pipename "ntsvcs";
+set pipename_stager "scerpc";
+
+###TCP options###
+set tcp_port "8000";
+
+###SSL Options###
 #custom cert
 #https-certificate {
     #set keystore "your_store_file.store";
@@ -35,24 +57,7 @@ https-certificate {
     #set alias "server";
 #}
 
-###DNS options###
-set dns_idle "8.8.8.8";
-set maxdns    "245";
-set dns_sleep "0";
-set dns_stager_prepend "";
-set dns_stager_subhost "";
-set dns_max_txt "252";
-set dns_ttl "1";
-
-###SMB options###
-#use different strings for pipename and pipename_stager.
-set pipename "ntsvcs";
-set pipename_stager "scerpc";
-
-###TCP options###
-set tcp_port "8000";
-
-###HTTP options###
+###HTTP-Config Block###
 #Order of server response headers. Or you can just fill them in manually under the server blocks.
 http-config {
     set headers "Server, Content-Type, Cache-Control, Connection";
@@ -64,7 +69,8 @@ http-config {
     set trust_x_forwarded_for "false";
 }
 
-#the client GET function checks if there are tasks queued.
+###HTTP-GET Block###
+#the http-get block checks if there are tasks queued.
 http-get {
 
 #You can specifiy multiple URI's with space between them.
@@ -155,11 +161,12 @@ http-get {
     }
 }
 
+###HTTP-Post Block###
 #The same transform and termination rules apply as the client GET section above.
-#if tasks are queued then POST processes them.
+#if tasks are queued then http-post block processes them.
 http-post {
     
-#URI's cannot be the same as the client GET URI's, even changing one case is fine.
+#URI's cannot be the same as the http-get block URI's, even changing one case is fine.
     set uri "/Login /Config /Admin";
     set verb "GET";
     #set verb "POST";
@@ -224,7 +231,8 @@ http-post {
     }
 }
 
-#Options to set if you are using a staged payload. Stageless payloads are more Opsec safe.
+###HTTP-Stager Block###
+#Options to set if you are using a staged payload.
 http-stager {
 
 #Same URI rules apply as above, can't have URI's that match in any other client block.
@@ -250,21 +258,8 @@ http-stager {
 
 
 
-###Malleable PE Options###
 
-post-ex {
-
-    set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
-    set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
-
-    set obfuscate "true";
-
-    set smartinject "true";
-
-    set amsi_disable "true";
-
-}
-
+###Malleable PE/Stage Block###
 #use peclone on the dll you want to use, this example uses wwanmm.dll. You can also set the values manually.
 #don't use 'set image_size_xx' if using 'set module_xx'. During testing it seemed to double the size of my payload causing module stomp to fail, need to test it out more though.
 stage {
@@ -313,10 +308,12 @@ stage {
     stringw "something"; 
 }
 
-
+###Process Inject Block###
 #controls process injection behavior
 process-inject {
 
+    #Can use NtMapViewOfSection or VirtualAllocEx
+    #NtMapViewOfSection only allows same arch to same arch process injection.
     set allocator "NtMapViewOfSection";		
 
     set min_alloc "16700";
@@ -324,7 +321,8 @@ process-inject {
     set userwx "false";  
     
     set startrwx "true";
-        
+ 
+    #prepend has to be valid code for current arch       
     transform-x86 {
         prepend "\x90\x90\x90";
     }
@@ -339,4 +337,18 @@ process-inject {
         CreateRemoteThread;
         RtlCreateUserThread;
     }
-}    
+}
+
+###Post-Ex Block###
+post-ex {
+
+    set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
+    set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+
+    set obfuscate "true";
+
+    set smartinject "true";
+
+    set amsi_disable "true";
+
+}
