@@ -44,14 +44,14 @@ http-get {
 
 	    append "\";\n";
             append "xfbjixjsytvxjyuvcaxhfehv = new Array();\n";
-	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"i95BtfTT\")\n";
-	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"C(\")\n";
-	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"wVC3Ea\")\n";
-	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"93V6x46z\")\n";
-	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"9E7txtA6tRS3>SzSt4w\")\n";
-	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"Bv9\")\n";
-	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"xta7\")\n";
-	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"49\")\n";
+	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"i95BtfTT\");\n";
+	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"C(\");\n";
+	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"wVC3Ea\");\n";
+	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"93V6x46z\");\n";
+	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"9E7txtA6tRS3>SzSt4w\");\n";
+	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"Bv9\");\n";
+	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"xta7\");\n";
+	    append "xfbjixjsytvxjyuvcaxhfehv.push(\"49\");\n";
 
             print;
         }
