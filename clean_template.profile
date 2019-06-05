@@ -158,10 +158,20 @@ http-stager {
     client {
         header "Host" "whatever.com";
         header "Connection" "close";
+	
+	#parameter "test1" "test2";
     }
 
     server {
-        #header "Server" "nginx";    
+        #header "Server" "nginx";
+	
+	output {
+	
+	    prepend "content=";
+	    
+	    append "</script>\n";
+	    print;
+	}
 
     }
 }
