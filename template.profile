@@ -244,11 +244,22 @@ http-stager {
         header "Accept" "*/*";
         header "Accept-Language" "en-US";
         header "Connection" "close";
+	
+	#can use a parameter as well
+	parameter "test1" "test2";
     }
 
     server {
 #headers are defined in the http-config block above, or you can set them manually here.
-        #header "Server" "nginx";    
+        #header "Server" "nginx";
+	
+	output {
+	
+	    prepend "content=";
+	    
+	    append "</script>\n";
+	    print;
+	}
 
     }
 
