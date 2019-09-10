@@ -233,10 +233,19 @@ process-inject {
     }
 
     execute {
-        CreateThread "ntdll!RtlUserThreadStart";
-        CreateThread;
-        NtQueueApcThread;
-        CreateRemoteThread;
+        #CreateThread;
+        #CreateRemoteThread;       
+
+        CreateThread "ntdll.dll!RtlUserThreadStart+0x1000";
+
+        SetThreadContext;
+
+        NtQueueApcThread-s;
+
+        #NtQueueApcThread;
+
+        CreateRemoteThread "kernel32.dll!LoadLibraryA+0x1000";
+
         RtlCreateUserThread;
     }
 }
