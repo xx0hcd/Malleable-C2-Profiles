@@ -342,10 +342,28 @@ process-inject {
     }
 
     execute {
-        CreateThread "ntdll!RtlUserThreadStart";
-        CreateThread;
-        NtQueueApcThread;
-        CreateRemoteThread;
+        #Options to spoof start address for CreateThread and CreateRemoteThread, +0x<nums> for offset added to start address. docs recommend ntdll and kernel32 using remote process.
+
+        #start address does not point to the current process space, fires SYSMON 8 events
+        #CreateThread;
+        #CreateRemoteThread;       
+
+        #self injection
+        CreateThread "ntdll.dll!RtlUserThreadStart+0x1000";
+
+        #suspended process in post-ex jobs, takes over primary thread of temp process
+        SetThreadContext;
+
+        #early bird technique, creates a suspended process, queues an APC call to the process, resumes main thread to execute the APC.
+        NtQueueApcThread-s;
+
+        #uses an RWX stub, uses CreateThread with start address that stands out, same arch injection only.
+        #NtQueueApcThread;
+
+        #no cross session
+        CreateRemoteThread "kernel32.dll!LoadLibraryA+0x1000";
+
+        #uses an RWX stub, fires SYSMON 8 events, does allow x86->x64 injection.
         RtlCreateUserThread;
     }
 }
