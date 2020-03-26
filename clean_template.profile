@@ -1,4 +1,5 @@
 #clean template profile - no comments, cleaned up, hopefully easier to build new profiles off of.
+#updated with 4.x options, added sections for new variant options. Variants can be used on http-get, http-post, http-stager, and https-certificate blocks.
 #xx0hcd
 
 ###Global Options###
@@ -109,6 +110,50 @@ http-get {
     }
 }
 
+###HTTP-GET VARIANT###
+http-get "variant_name_get" {
+
+    set uri "/uri1 /uri2 /uri3";
+
+    #set verb "POST";
+    
+    client {
+
+        header "Host" "whatever.com";
+        header "Connection" "close";
+
+	   
+    metadata {
+
+        base64url;
+        append ".php";
+
+        parameter "file";
+        #header "Cookie";
+        #uri-append;
+
+        #print;
+    }
+
+    parameter "test1" "test2";
+    }
+
+    server {
+        #header "Server" "nginx";
+ 
+        output {
+
+            netbios;
+            	       
+	    prepend "content=";
+
+	    append "\n<meta name=\n";
+
+            print;
+        }
+    }
+}
+
 ###HTTP-Post Block###
 http-post {
     
@@ -129,7 +174,7 @@ http-post {
         id {
 	    base64url;
 	    parameter "id";
-            #header "ID-Header":
+            #header "ID-Header";
 
         }
     }
@@ -143,6 +188,45 @@ http-post {
 	    prepend "content=";
 
 	    append "\n<meta name=\"msvalidate.01\" content=\"63E628E67E6AD849F4185FA9AA7ABACA\">\n";
+
+            print;
+        }
+    }
+}
+
+###HTTP-POST VARIANT###
+http-post "variant_name_post" {
+    
+    set uri "/Uri1 /Uri2 /Uri3";
+    set verb "GET";
+    #set verb "POST";
+
+    client {
+
+	header "Host" "whatever.com";
+	header "Connection" "close";     
+        
+        output {
+            base64url; 
+	    parameter "testParam";
+        }
+
+        id {
+	    base64url;
+	    parameter "id";
+
+        }
+    }
+
+    server {
+        #header "Server" "nginx";
+
+        output {
+            netbios;	    
+	   
+	    prepend "content=";
+
+	    append "\n<meta name=\n";
 
             print;
         }
