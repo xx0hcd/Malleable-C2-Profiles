@@ -1,4 +1,4 @@
-#template profile - updated with 3.14 options
+#template profile - updated with 4.x options, added sections for new variant options. Variants can be used on http-get, http-post, http-stager, and https-certificate blocks.
 #options from https://www.cobaltstrike.com/help-malleable-c2 and https://www.cobaltstrike.com/help-malleable-postex
 #attempt to get everything in one place with examples.
 #xx0hcd
@@ -50,6 +50,17 @@ https-certificate {
     set validity "365";
 }
 
+###HTTPS_CERTIFICATE VARIANT###
+#https-certificate "varinat_name_self" {
+#    set C "US";
+#    set CN "whatever2.com";
+#    set L "Florida";
+#    set O "whatever2 LLC.";
+#    set OU "local.org";
+#    set ST "FL";
+#    set validity "365";
+#}
+
 #code sign cert.
 #code-signer {
     #set keystore "your_keystore.jks";
@@ -71,6 +82,7 @@ http-config {
 
 ###HTTP-GET Block###
 #the http-get block checks if there are tasks queued.
+
 http-get {
 
 #You can specifiy multiple URI's with space between them.
@@ -161,9 +173,52 @@ http-get {
     }
 }
 
+###HTTP-GET VARIANT###
+#variants allow you to use multiple traffic profiles with a single teamserver. Define the block as normal adding a name for the variant in quotes.
+
+http-get "variant_name_get" {
+ 
+    set uri "/index"; 
+    
+    client {
+        
+        header "Accept" "*/*";
+        header "Connection" "Keep-Alive";
+       
+    metadata {
+        
+    base64url;
+    parameter "id";
+    
+    }
+    
+    parameter "param_key" "value";
+    
+  }
+  
+    server {
+        
+        header "Server" "Apache";
+        
+        output {
+            netbios;
+
+            prepend "<html>\n";
+
+            append "'\n";         
+            
+            print;
+        }
+        
+    }
+  
+}
+
+
 ###HTTP-Post Block###
 #The same transform and termination rules apply as the client GET section above.
 #if tasks are queued then http-post block processes them.
+
 http-post {
     
 #URI's cannot be the same as the http-get block URI's, even changing one case is fine.
@@ -231,6 +286,45 @@ http-post {
     }
 }
 
+###HTTP-POST VARIANT###
+#variants allow you to use multiple traffic profiles with a single teamserver. Define the block as normal adding a name for the variant in quotes.
+
+http-post "variant_name_post" {
+    
+    set uri "/html";
+    #set verb "GET";
+    set verb "POST";
+
+    client {
+
+	header "Accept" "*/*";
+	header "Connection" "Keep-Alive";
+	        
+        output {
+            base64url;
+	    parameter "name";
+	    
+        }
+
+        id {
+	    base64url;
+	    parameter "id";
+
+        }
+    }
+
+    server {
+    
+        header "Server" "Apache";
+
+        output {
+            netbios;
+            print;
+        }
+    }
+}
+
+
 ###HTTP-Stager Block###
 #Options to set if you are using a staged payload.
 http-stager {
@@ -266,7 +360,40 @@ http-stager {
 
 }
 
+###HTTP-Stager Variant###
+#variants allow you to use multiple traffic profiles with a single teamserver. Define the block as normal adding a name for the variant in quotes.
 
+http-stager "variant_name_stager" {
+
+    set uri_x86 "/uri1";
+    set uri_x64 "/uri2";
+
+    client {
+        header "Host" "whatever.com";
+        header "Accept" "*/*";
+        header "Accept-Language" "en-US";
+        header "Connection" "close";
+	
+	#can use a parameter as well
+	parameter "test1" "test2";
+    }
+
+    server {
+#headers are defined in the http-config block above, or you can set them manually here.
+        #header "Server" "nginx";
+	
+	output {
+	
+	    prepend "content=";
+	    
+	    append "</script>\n";
+	    print;
+	}
+
+    }
+
+
+}
 
 
 
