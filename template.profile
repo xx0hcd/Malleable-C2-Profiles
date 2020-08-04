@@ -28,9 +28,14 @@ set dns_ttl "1";
 #use different strings for pipename and pipename_stager.
 set pipename "ntsvcs";
 set pipename_stager "scerpc";
+set smb_frame_header "";
 
 ###TCP options###
 set tcp_port "8000";
+set tcp_frame_header "";
+
+###SSH Banner###
+set ssh_banner "Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-1065-aws x86_64)";
 
 ###SSL Options###
 #custom cert
@@ -416,6 +421,9 @@ stage {
     
     #obfuscate beacon before sleep.
     set sleep_mask "true";
+    
+    #https://www.cobaltstrike.com/releasenotes.txt -> + Added option to bootstrap Beacon in-memory without walking kernel32 EAT
+    set smartinject "true";
 
 #module stomp. Make sure the dll you use is bigger than your payload and test it with post exploit options to make sure everything is working.
 
