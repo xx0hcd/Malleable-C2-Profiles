@@ -23,9 +23,14 @@ set dns_ttl "1";
 ###SMB options###
 set pipename "ntsvcs";
 set pipename_stager "scerpc";
+set smb_frame_header "";
 
 ###TCP options###
 set tcp_port "8000";
+set tcp_frame_header "";
+
+###SSH Banner###
+set ssh_banner "Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-1065-aws x86_64)";
 
 ###SSL Options###
 #https-certificate {
@@ -277,6 +282,7 @@ stage {
     set rich_header     "";
     
     set sleep_mask "true";
+    set smartinject "true";
 
     set module_x86 "wwanmm.dll";
     set module_x64 "wwanmm.dll";
