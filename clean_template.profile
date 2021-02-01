@@ -21,8 +21,8 @@ set dns_max_txt "252";
 set dns_ttl "1";
 
 ###SMB options###
-set pipename "ntsvcs";
-set pipename_stager "scerpc";
+set pipename "ntsvcs##";
+set pipename_stager "scerpc##";
 set smb_frame_header "";
 
 ###TCP options###
@@ -283,7 +283,7 @@ stage {
     
     #new 4.2. options   
     #set allocator "HeapAlloc";
-    #set magic_mx_x86 "MZRE";
+    #set magic_mz_x86 "MZRE";
     #set magic_mz_x64 "MZAR";
     #set magic_pe "PE";
     
