@@ -427,11 +427,12 @@ stage {
     #https://www.cobaltstrike.com/releasenotes.txt -> + Added option to bootstrap Beacon in-memory without walking kernel32 EAT
     set smartinject "true";
     
-    #new 4.2. options   
+    #new 4.2. options
+    #allocator options include HeapAlloc, MapViewOfFile, VirtualAlloc, or you can use module stomp.
     #set allocator "HeapAlloc";
-    #set magic_mx_x86 "MZRE";
+    #set magic_mz_x86 "MZRE";
     #set magic_mz_x64 "MZAR";
-    #set magic_pe "PE";
+    #set magic_pe "EA";
 
 #module stomp. Make sure the dll you use is bigger than your payload and test it with post exploit options to make sure everything is working.
 
