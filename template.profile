@@ -1,4 +1,4 @@
-#template profile - updated with 4.2 options.
+#template profile - updated with 4.3 options.
 #options from https://www.cobaltstrike.com/help-malleable-c2 and https://www.cobaltstrike.com/help-malleable-postex
 #attempt to get everything in one place with examples.
 #xx0hcd
@@ -12,17 +12,32 @@ set sleeptime "37500";
 set jitter    "33";
 set useragent "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/587.38 (KHTML, like Gecko) Chrome/41.0.2228.0 Safari/537.36";
 
+#Append random-length string (up to data_jitter value) to http-get and http-post server output.
+set data_jitter "50";
+
 #set true to use staged payloads, false to disable staged payloads.
 set host_stage "false";
 
 ###DNS options###
-set dns_idle "8.8.8.8";
-set maxdns    "245";
-set dns_sleep "0";
-set dns_stager_prepend "";
-set dns_stager_subhost "";
-set dns_max_txt "252";
-set dns_ttl "1";
+dns-beacon {
+    # Options moved into 'dns-beacon' group in 4.3:
+    set dns_idle             "8.8.8.8";
+    set dns_max_txt          "220";
+    set dns_sleep            "0";
+    set dns_ttl              "1";
+    set maxdns               "255";
+    set dns_stager_prepend   ".wwwds.";
+    set dns_stager_subhost   ".e2867.dsca.";
+     
+    # DNS subhost override options added in 4.3:
+    set beacon               "d-bx.";
+    set get_A                "d-1ax.";
+    set get_AAAA             "d-4ax.";
+    set get_TXT              "d-1tx.";
+    set put_metadata         "d-1mx";
+    set put_output           "d-1ox.";
+    set ns_response          "zero";
+}
 
 ###SMB options###
 #use different strings for pipename and pipename_stager.
@@ -84,7 +99,12 @@ http-config {
     header "Server" "nginx";
     #set "true" if teamserver is behind redirector
     set trust_x_forwarded_for "false";
+    #can set whether you want to remove the UA that teamserver blocks by default
+    set block_useragents "curl*,lynx*,wget*";
 }
+
+#Comma-separated list of HTTP client headers to remove from Beacon C2. Assume it is for removing any headers added that are causing issues, just haven't ran into that in testing.
+#set headers_remove "image/x-xbitmap, image/pjpeg, application/vnd";
 
 ###HTTP-GET Block###
 #the http-get block checks if there are tasks queued.
@@ -221,6 +241,14 @@ http-get "variant_name_get" {
   
 }
 
+
+#Blocks that support variants:
+#
+#    http-get
+#    http-post
+#    http-stager
+#    https-certificate
+#    dns-beacon
 
 ###HTTP-Post Block###
 #The same transform and termination rules apply as the client GET section above.
