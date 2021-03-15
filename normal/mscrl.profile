@@ -5,23 +5,37 @@
 set sample_name "mscrl.profile";
 
 set sleeptime "38500";
-set jitter    "27";
+set jitter    "33";
+set data_jitter "50";
 set useragent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/88.0.4324.104 Safari/537.36";
 
 set host_stage "false";
 
 ###DNS options###
-set dns_idle "8.8.8.8";
-set maxdns    "245";
-set dns_sleep "0";
-set dns_stager_prepend "";
-set dns_stager_subhost "";
-set dns_max_txt "252";
-set dns_ttl "1";
+dns-beacon {
+    # Options moved into 'dns-beacon' group in 4.3:
+    set dns_idle             "8.8.8.8";
+    set dns_max_txt          "220";
+    set dns_sleep            "0";
+    set dns_ttl              "1";
+    set maxdns               "255";
+    set dns_stager_prepend   ".wwwds.";
+    set dns_stager_subhost   ".e2867.dsca.";
+     
+    # DNS subhost override options added in 4.3:
+    set beacon               "d-bx.";
+    set get_A                "d-1ax.";
+    set get_AAAA             "d-4ax.";
+    set get_TXT              "d-1tx.";
+    set put_metadata         "d-1mx";
+    set put_output           "d-1ox.";
+    set ns_response          "zero";
+}
 
 ###SMB options###
 set pipename "ntsvcs##";
 set pipename_stager "scerpc##";
+set smb_frame_header "";
 
 ###TCP options###
 set tcp_port "8000";
@@ -54,13 +68,14 @@ https-certificate {
 #}
 
 ###HTTP-Config Block###
-#http-config {
+http-config {
 #    set headers "Server, Content-Type";
 #    header "Content-Type" "text/html;charset=UTF-8";
 #    header "Server" "nginx";
 #
-#    set trust_x_forwarded_for "false";
-#}
+    set trust_x_forwarded_for "false";
+    set block_useragents "curl*,lynx*,wget*";
+}
 
 ###HTTP-GET Block###
 http-get {
