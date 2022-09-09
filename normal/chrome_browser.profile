@@ -46,7 +46,7 @@ set ssh_banner "Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-1065-aws x86_64)
 set ssh_pipename "SearchTextHarvester##";
 
 ###Steal Token
-set steal_token_access_mask "0";
+set steal_token_access_mask "11";
 
 ###Proxy Options
 set tasks_max_size "1048576";
