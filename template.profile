@@ -1,4 +1,4 @@
-#template profile - updated with 4.3 options.
+#template profile - updated with 4.7 options.
 #options from https://www.cobaltstrike.com/help-malleable-c2 and https://www.cobaltstrike.com/help-malleable-postex
 #attempt to get everything in one place with examples.
 #xx0hcd
@@ -52,6 +52,15 @@ set tcp_frame_header "";
 ###SSH options###
 set ssh_banner "Welcome to Ubuntu 18.04.4 LTS (GNU/Linux 4.15.0-1065-aws x86_64)";
 set ssh_pipename "SearchTextHarvester##";
+
+###Steal Token - https://hstechdocs.helpsystems.com/manuals/cobaltstrike/current/userguide/content/topics_aggressor-scripts/as-resources_functions.htm?Highlight=bsteal_token (all values listed in link)
+#0 = TOKEN_ALL_ACCESS, 11 = TOKEN_ASSIGN_PRIMARY | TOKEN_DUPLICATE | TOKEN_QUERY (1+2+8)
+set steal_token_access_mask "0";
+
+###Proxy Options
+set tasks_max_size "1048576";
+set tasks_proxy_max_size "921600";
+set tasks_dns_proxy_max_size "71680";
 
 ###SSL Options###
 #custom cert
@@ -497,7 +506,12 @@ process-inject {
 
     #Can use NtMapViewOfSection or VirtualAllocEx
     #NtMapViewOfSection only allows same arch to same arch process injection.
-    set allocator "NtMapViewOfSection";		
+    set allocator "VirtualAllocEx";
+    
+    ##allocate memory in current process for BOF - available settings VirtualAlloc, MapViewOfFile, HeapAlloc
+    set bof_allocator "VirtualAlloc";
+    #reuse or release memory used with BOF
+    set bof_reuse_memory "false";		
 
     set min_alloc "16700";
 
@@ -535,6 +549,7 @@ process-inject {
         #no cross session
         CreateRemoteThread "kernel32.dll!LoadLibraryA+0x1000";
 
+	CreateRemoteThread;
         #uses an RWX stub, fires SYSMON 8 events, does allow x86->x64 injection.
         #c2lint msg -> .process-inject.execute RtlCreateUserThread will cause unpredictable behavior with cross-session injects on XP/200
         RtlCreateUserThread;
