@@ -77,14 +77,14 @@ https-certificate {
 #}
 
 ###HTTP-Config Block###
-http-config {
-    set headers "Server, Content-Type";
-    header "Server" "nginx";
-
-    set trust_x_forwarded_for "false";
-    
-    set block_useragents "curl*,lynx*,wget*";
-}
+#http-config {
+#    set headers "Server, Content-Type";
+#    header "Server" "nginx";
+#
+#    set trust_x_forwarded_for "false";
+#    
+#    set block_useragents "curl*,lynx*,wget*";
+#}
 
 #set headers_remove "image/x-xbitmap, image/pjpeg, application/vnd";
 
